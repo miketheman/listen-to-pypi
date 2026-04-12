@@ -37,7 +37,7 @@ No server-side component needed. PyPI's RSS feeds serve CORS headers
 - **Client-only** — each browser runs independently, no shared server state
 - **Synthesized audio** — all sounds generated via Web Audio API, no audio files
 - **C major pentatonic scale** — any combination of simultaneous notes sounds harmonious
-- **Event queue with adaptive drain** — poll results push to a queue; a setTimeout chain drains one event at a time with adaptive spacing (1-5s based on queue depth). Initial seed events are queued and played steadily from the start.
+- **Event queue with adaptive drain** — poll results push to a queue; a setTimeout chain drains one event at a time with adaptive spacing (2-5s based on queue depth). Initial seed events are queued and played steadily from the start.
 - **Deduplication** — a seen-set keyed on RSS `<link>` URLs, pruned at 500 entries
 - **Keyboard shortcut** — Space to play/pause (skips when inputs or dialogs are focused)
 - **Network recovery** — tracks consecutive poll failures, shows "Reconnecting..." after 3 failures, clears on success
@@ -57,8 +57,11 @@ Each RSS item is enriched with derived fields in `feed.js`:
 
 ## Sound Design
 
-- **Bell** — minor/patch updates. Sine + harmonics, quick attack, 2-5s decay. Category sets overtone waveform, maturity scales decay.
-- **Bowl** — new packages + major versions. Deeper, sine + triangle with beating, 4-8s decay.
+See [SOUND-DESIGN.md](SOUND-DESIGN.md) for detailed rationale and research references.
+
+Summary of voices:
+- **Bell** — minor/patch updates. Sine + harmonics, 50ms attack, 2-5s decay. High reverb mix (0.45).
+- **Bowl** — new packages + major versions. Beat frequency 1-2 Hz, 4-8s decay.
 - **Shimmer** — 25% of patches. Brief detuned pair, textural contrast.
 - **Drone pad** — continuous C3+E3+G3 with slow LFO. Toggleable via header switch.
 - **Ambient chime** — fires after 90s of silence, reverb-only.

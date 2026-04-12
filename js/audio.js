@@ -125,7 +125,7 @@ class AudioEngine {
 
     const osc3 = this.ctx.createOscillator();
     osc3.type = "sine";
-    osc3.frequency.value = 164.81; // E3 for a fuller chord
+    osc3.frequency.value = 164.91; // E3 + slight detune to soften beating with G3
 
     // Slow LFO for gentle volume modulation
     const lfo = this.ctx.createOscillator();
@@ -195,7 +195,7 @@ class AudioEngine {
     const numHarmonics = 2 + Math.floor(Math.random() * 3);
     const overtoneType = hints.overtone || (Math.random() < 0.3 ? "triangle" : "sine");
 
-    const pan = this._routePan(hints.reverbMix ?? 0.3);
+    const pan = this._routePan(hints.reverbMix ?? 0.45);
 
     for (let h = 0; h < numHarmonics; h++) {
       const osc = this.ctx.createOscillator();
@@ -204,11 +204,11 @@ class AudioEngine {
       osc.detune.value = detune + (Math.random() - 0.5) * (h + 1) * 4;
 
       const gain = this.ctx.createGain();
-      const level = 0.14 / (h + 1);
+      const level = 0.1 / (h + 1);
       const decay = decayBase / (1 + h * 0.4);
 
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(level, now + 0.015);
+      gain.gain.linearRampToValueAtTime(level, now + 0.05);
       gain.gain.exponentialRampToValueAtTime(0.001, now + decay);
 
       osc.connect(gain).connect(pan);
@@ -238,7 +238,7 @@ class AudioEngine {
     const now = this.ctx.currentTime;
     const decayScale = hints.decayScale || 1;
 
-    const beatFreq = 0.8 + Math.random() * 2;
+    const beatFreq = 1.0 + Math.random() * 1.0;
     const decayBase = (4 + Math.random() * 4) * decayScale;
     const overtoneType = hints.overtone || (Math.random() < 0.4 ? "triangle" : "sine");
 
@@ -271,7 +271,7 @@ class AudioEngine {
     g2.gain.exponentialRampToValueAtTime(0.001, now + decayBase * 0.8);
 
     g3.gain.setValueAtTime(0.001, now);
-    g3.gain.linearRampToValueAtTime(0.025, now + attack);
+    g3.gain.linearRampToValueAtTime(0.015, now + attack);
     g3.gain.exponentialRampToValueAtTime(0.001, now + decayBase * 0.6);
 
     osc1.connect(g1).connect(pan);

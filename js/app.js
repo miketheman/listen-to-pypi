@@ -271,9 +271,10 @@ function scheduleDrain() {
   triggerEvent(event);
 
   // Adaptive spacing: spread remaining queue across the poll interval,
-  // clamped to 1-5s so it never feels rushed or stale.
+  // clamped to 2-5s. Research shows ~12 BPM (5s) is optimal for
+  // relaxation; 2s minimum avoids rushing during backlog drain.
   const delay = Math.max(
-    1000,
+    2000,
     Math.min(5000, (CONFIG.POLL_INTERVAL * 0.9) / (eventQueue.length + 1)),
   );
   drainIntervalId = setTimeout(scheduleDrain, delay);
@@ -306,7 +307,10 @@ function triggerEvent(event) {
   } else if (Math.random() < 0.25) {
     audio.playShimmer(event.noteIndex, hints);
   } else {
-    audio.playBell(event.noteIndex, "high", hints);
+    // Favor mid octave (70%) over high (30%) to reduce listener fatigue
+    // in the 500-880 Hz range where hearing is most sensitive.
+    const octave = Math.random() < 0.7 ? "mid" : "high";
+    audio.playBell(event.noteIndex, octave, hints);
   }
 
   visual.addEvent(event);

@@ -64,3 +64,18 @@ richer, more organic tones:
 
 - **Recording / export** — Capture the audio output using MediaRecorder API
   and allow users to download a clip of the soundscape.
+
+## Sound Design Experiments
+
+Research-backed ideas to explore (see SOUND-DESIGN.md for references):
+
+- **C minor pentatonic scale** — Dondena et al. (2024) used C minor
+  pentatonic (C, Eb, F, G, Bb) and found strong relaxation effects. More
+  contemplative than our current C major pentatonic. Would require retuning
+  all three octaves.
+
+- **432 Hz tuning** — A single study of emergency nurses found 432 Hz music
+  showed greater anxiety reduction than 440 Hz tuning (cited in Milligan
+  et al., 2025 scoping review). Trivial to implement (multiply all
+  frequencies by 432/440 = 0.9818). Single-study evidence, treat as
+  experimental.
