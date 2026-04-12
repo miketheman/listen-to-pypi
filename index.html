@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Listen to PyPI</title>
+  <meta name="description" content="Listen to the Python Package Index — real-time sonification of PyPI package releases">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>
+      <img src="logo.svg" alt="Listen to PyPI" class="logo" width="26" height="26">Listen to PyPI
+      <button type="button" id="help-btn" aria-label="What is this?" aria-expanded="false" aria-controls="help-dialog" title="What is this?">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+          <text x="12" y="17" text-anchor="middle" font-size="14" font-weight="600" fill="currentColor">?</text>
+        </svg>
+      </button>
+    </h1>
+    <div class="controls">
+      <div class="volume-control">
+        <input type="range" id="volume" min="0" max="100" value="50">
+        <label for="volume">Volume</label>
+      </div>
+      <label class="drone-toggle" title="Toggle background drone">
+        <input type="checkbox" id="drone-toggle" checked>
+        <span>Drone</span>
+      </label>
+      <!-- Play/pause icon button — SVG swapped by JS -->
+      <button type="button" id="play-btn" aria-label="Start listening">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+          <polygon points="6,3 20,12 6,21"/>
+        </svg>
+      </button>
+    </div>
+    <span id="status" role="status" aria-live="polite"></span>
+  </header>
+
+  <main>
+    <svg id="canvas" role="img" aria-label="Visualization of PyPI package activity"></svg>
+
+    <!-- Hero play button — shown only before first start, centered on canvas -->
+    <div id="hero-play">
+      <button type="button" id="hero-play-btn" aria-label="Start listening">
+        <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor" aria-hidden="true">
+          <polygon points="7,3 21,12 7,21"/>
+        </svg>
+      </button>
+      <p class="hero-hint">Click to start listening</p>
+    </div>
+
+    <div id="event-log" role="log" aria-live="polite">
+      <ul id="log-list"></ul>
+      <div id="stats-bar" aria-live="polite">
+        <span id="total-count">0 updates</span>
+        <span id="rate">--/min</span>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Made with &#128153; by <a href="https://github.com/miketheman" rel="noopener">miketheman</a>
+    &middot; <a href="https://github.com/miketheman/listen-to-pypi" rel="noopener">Source</a>
+    &middot; <a href="https://pypi.org/trademarks/" rel="noopener">PyPI is a trademark of the PSF</a>
+  </footer>
+
+  <dialog id="help-dialog" aria-labelledby="help-title">
+    <div class="dialog-body">
+      <h2 id="help-title">What is this?</h2>
+      <p>
+        <strong>Listen to PyPI</strong> turns the Python Package Index into
+        a live ambient soundscape. Every time a package is published or
+        updated, you hear it as a tone and see it as a glowing circle.
+      </p>
+      <h3>What you'll hear</h3>
+      <ul>
+        <li>A gentle <strong>background drone</strong> plays continuously &mdash;
+          a warm chord that creates a meditative foundation
+          (toggle it off with the <strong>Drone</strong> switch in the header)</li>
+        <li><strong>Bell chimes</strong> ring for minor and patch releases,
+          with pitch and timbre varying by package category</li>
+        <li>Deep <strong>singing bowl</strong> tones mark new packages and
+          major version releases</li>
+        <li>Occasional <strong>shimmers</strong> add textural variety</li>
+      </ul>
+      <h3>What you'll see</h3>
+      <ul>
+        <li><span class="swatch swatch-new"></span> <strong>Gold</strong> circles for brand-new packages</li>
+        <li><span class="swatch swatch-major"></span> <strong>Blue</strong> circles for major releases</li>
+        <li><span class="swatch swatch-minor"></span> <strong>Teal</strong> circles for minor updates</li>
+        <li><span class="swatch swatch-patch"></span> <strong>Gray</strong> circles for patch fixes</li>
+      </ul>
+      <p>
+        Leave it running in a background tab for a calm, ever-changing
+        soundscape driven by the Python community's real-time activity.
+      </p>
+      <h3>Privacy</h3>
+      <p>
+        This site only reads public PyPI RSS feeds. It doesn't send or
+        store any data &mdash; the only things saved are your volume
+        and drone settings in localStorage.
+      </p>
+      <form method="dialog">
+        <button type="submit" autofocus>Got it</button>
+      </form>
+    </div>
+  </dialog>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,636 @@
+/* Listen to PyPI — Styles */
+
+:root {
+  /*
+   * Color palette — derived from PyPI's brand colors:
+   * Primary blue: #006dad  Highlight yellow: #ffd343
+   * Logo blues: #3775A9, #4B8BBE, #306998
+   * Source: warehouse/static/sass/settings/_colours.scss
+   */
+  --bg-deep: #0b1120;
+  --bg-surface: rgba(11, 17, 32, 0.92);
+  --border: #1a2744;
+  --text-primary: #e6edf3;
+  --text-body: #b8c4d0;
+  --text-muted: #7a8da0;
+  --text-faint: #7d8fa2; /* 5.7:1 contrast on --bg-deep */
+  --text-footer: #6d7f92; /* 4.6:1 contrast on --bg-deep */
+  --accent: #4b8bbe; /* PyPI logo mid-blue */
+  --btn-green: #148024; /* PyPI $success-color */
+  --btn-green-hover: #1a9a2e;
+
+  /* Event type colors — match JS getColor() in visual.js
+   * New packages use PyPI highlight yellow, others use logo blues */
+  --color-new: #ffd343; /* PyPI $highlight-color */
+  --color-major: #4b8bbe; /* PyPI logo blue */
+  --color-minor: #3775a9; /* PyPI logo teal-blue */
+  --color-patch: #7a8da0;
+
+  /* Log link colors (slightly muted versions of event colors) */
+  --log-new: #e6b830;
+  --log-major: #5a9cc5; /* 6.3:1 contrast on --bg-deep */
+  --log-minor: #4a85aa; /* 4.7:1 contrast on --bg-deep */
+  --log-patch: #7a8b9c; /* 5.4:1 contrast on --bg-deep */
+
+  /* Animation durations */
+  --circle-life: 12s;
+  --label-life: 5s;
+
+  /* Fonts — Source Sans 3 matches PyPI's own typography */
+  --font-sans: "Source Sans 3", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+}
+
+/* ── Reset ── */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Visible focus indicator for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Respect user preference for reduced motion.
+ * !important is intentional — must override all animation declarations
+ * regardless of specificity. Standard a11y pattern per WCAG 2.3.3.
+ * noImportantStyles rule disabled in biome.json for this reason. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-deep);
+  color: var(--text-body);
+  font-family: var(--font-sans);
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  z-index: 10;
+  flex-shrink: 0;
+  animation: fade-in 0.6s ease-out;
+}
+
+header h1 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo {
+  height: 26px;
+  width: auto;
+}
+
+/* Color swatches used in the help dialog legend */
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+.swatch-new {
+  background: var(--color-new);
+}
+.swatch-major {
+  background: var(--color-major);
+}
+.swatch-minor {
+  background: var(--color-minor);
+}
+.swatch-patch {
+  background: var(--color-patch);
+}
+
+/* Controls pushed to the right of the header */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.volume-control label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.drone-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+/* Toggle switch — hides the native checkbox and draws a pill track + knob */
+.drone-toggle input {
+  appearance: none;
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--border);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.drone-toggle input::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition:
+    transform 0.2s,
+    background 0.2s;
+}
+.drone-toggle input:checked {
+  background: var(--accent);
+}
+.drone-toggle input:checked::after {
+  transform: translateX(14px);
+  background: #fff;
+}
+
+/* ── Canvas (fills remaining viewport between header and footer) ── */
+
+main {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Footer (muted — should recede into the background) ── */
+
+footer {
+  padding: 6px 20px;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-footer);
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+footer a {
+  color: var(--text-faint);
+  text-decoration: none;
+}
+footer a:hover {
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+
+/* ── Entrance animation ── */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── SVG circle animations ── */
+
+.event-circle {
+  animation: circle-life var(--circle-life) ease-out forwards;
+}
+
+.event-label {
+  animation: label-fade var(--label-life) ease-out forwards;
+  pointer-events: none;
+}
+
+/* Event log entry description text */
+.log-desc {
+  color: var(--text-faint);
+  font-size: 0.7rem;
+}
+
+/* Log entry link colors by event type */
+.log-new a {
+  color: var(--log-new);
+}
+.log-major a {
+  color: var(--log-major);
+}
+.log-minor a {
+  color: var(--log-minor);
+}
+.log-patch a {
+  color: var(--log-patch);
+}
+
+@keyframes circle-life {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  4% {
+    transform: scale(1);
+  }
+  6% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes label-fade {
+  0% {
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* New log entries slide up from below */
+@keyframes log-appear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*
+ * ── ID selectors ──
+ * Ordered by ascending specificity to satisfy biome's
+ * noDescendingSpecificity rule. Element/class selectors above,
+ * ID selectors below.
+ */
+
+/* Help button in the header — small, unobtrusive circle with "?" */
+#help-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+#help-btn:hover {
+  color: var(--accent);
+}
+
+/* Help dialog — native <dialog> styled to match the app's dark theme */
+#help-dialog {
+  max-width: 480px;
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-deep);
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+}
+
+#help-dialog .dialog-body {
+  padding: 28px 32px;
+}
+
+/* Dim the page behind the dialog */
+#help-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+#help-dialog h2 {
+  font-size: 1.2rem;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+#help-dialog h3 {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  margin-top: 16px;
+  margin-bottom: 6px;
+}
+
+#help-dialog p {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+#help-dialog ul {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  padding-left: 20px;
+  margin-bottom: 8px;
+}
+
+#help-dialog form {
+  text-align: right;
+  margin-top: 20px;
+}
+
+#help-dialog button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+#help-dialog button:hover {
+  background: #5a9dcf;
+}
+
+/* Hero play button — large centered prompt shown before first start.
+ * Pulses gently to draw attention. Fades out when playback begins. */
+#hero-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 8;
+  animation: fade-in 0.8s ease-out 0.3s both;
+  transition: opacity 0.5s ease-out;
+}
+
+/* Exit animation is handled by the Web Animations API in app.js,
+ * which calculates the exact pixel position of the header play button
+ * and animates the hero toward it. */
+
+#hero-play-btn {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: rgba(75, 139, 190, 0.1);
+  color: var(--accent);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding-left: 6px; /* visually center the play triangle */
+  transition:
+    transform 0.2s,
+    background 0.2s;
+}
+
+/* Pulse glow — uses opacity (compositable) instead of box-shadow */
+#hero-play-btn::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(75, 139, 190, 0.25) 0%, transparent 70%);
+  animation: hero-pulse 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+#hero-play-btn:hover {
+  transform: scale(1.08);
+  background: rgba(75, 139, 190, 0.2);
+}
+
+#hero-play-btn:active {
+  transform: scale(0.96);
+}
+
+.hero-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+}
+
+@keyframes hero-pulse {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Play / Pause icon button */
+#play-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-body);
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+#play-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+#play-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+#volume {
+  width: 100px;
+  accent-color: var(--accent);
+}
+
+/* Error status — only shown when something goes wrong */
+#status {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+#canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+#canvas a {
+  cursor: pointer;
+}
+#canvas a:hover circle {
+  opacity: 0.9;
+}
+
+/* Event log overlay — anchored to bottom-left of the canvas.
+ * Uses column-reverse so new entries appear at the bottom and
+ * older entries scroll upward. */
+#event-log {
+  position: absolute;
+  bottom: 40px;
+  left: 12px;
+  max-width: 420px;
+  max-height: 260px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+#log-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+#log-list li {
+  font-size: 0.75rem;
+  padding: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: log-appear 0.3s ease-out;
+  pointer-events: auto;
+  transition: opacity 0.2s;
+}
+
+/* Fade older entries — newest (last-child) is brightest,
+ * older entries at the top fade out. Hover/focus restores any entry. */
+#log-list li {
+  opacity: 0.45;
+}
+#log-list li:nth-last-child(1) {
+  opacity: 0.95;
+}
+#log-list li:nth-last-child(2) {
+  opacity: 0.85;
+}
+#log-list li:nth-last-child(3) {
+  opacity: 0.7;
+}
+#log-list li:nth-last-child(4) {
+  opacity: 0.6;
+}
+#log-list li:nth-last-child(5) {
+  opacity: 0.5;
+}
+#log-list li:hover,
+#log-list li:focus-within {
+  opacity: 1;
+}
+
+#log-list li a {
+  color: var(--accent);
+  text-decoration: none;
+}
+#log-list li a:hover {
+  text-decoration: underline;
+}
+
+/* Stats sit below the event log */
+#stats-bar {
+  display: flex;
+  gap: 12px;
+  font-size: 0.7rem;
+  color: var(--text-faint);
+  padding: 4px 0;
+  margin-top: 2px;
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 600px) {
+  header {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+  header h1 {
+    font-size: 1rem;
+  }
+  .volume-control label,
+  .drone-toggle span {
+    display: none;
+  }
+  #volume {
+    width: 72px;
+  }
+  #status {
+    width: 100%;
+    margin-left: 0;
+    font-size: 0.7rem;
+  }
+  #help-dialog {
+    max-width: calc(100vw - 32px);
+  }
+  #help-dialog .dialog-body {
+    padding: 20px;
+  }
+  #event-log {
+    max-width: 90vw;
+  }
+}

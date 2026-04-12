@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- PyPI-inspired 3D box -->
+  <path d="M32 4 L56 16 L56 40 L32 52 L8 40 L8 16 Z" fill="#3775A9"/>
+  <path d="M32 4 L56 16 L32 28 L8 16 Z" fill="#4B8BBE"/>
+  <path d="M32 28 L56 16 L56 40 L32 52 Z" fill="#306998"/>
+  <path d="M32 28 L8 16 L8 40 L32 52 Z" fill="#254F73"/>
+  <!-- Beamed eighth notes -->
+  <g fill="white" transform="translate(19, 14)">
+    <!-- Left note head -->
+    <ellipse cx="4" cy="24" rx="4" ry="3" transform="rotate(-20, 4, 24)"/>
+    <!-- Left stem -->
+    <rect x="7" y="6" width="2" height="19"/>
+    <!-- Right note head -->
+    <ellipse cx="20" cy="21" rx="4" ry="3" transform="rotate(-20, 20, 21)"/>
+    <!-- Right stem -->
+    <rect x="23" y="3" width="2" height="19"/>
+    <!-- Beam -->
+    <polygon points="7,6 9,6 25,3 25,5.5 9,8.5 7,8.5"/>
+  </g>
+</svg>
