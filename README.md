@@ -33,11 +33,18 @@ same package always produces the same tone.
 **Visuals:**
 
 - Circles appear at random positions, sized and colored by event type
-- New packages glow amber/gold; major versions are indigo; minor are teal;
-  patches are silver
+- New packages glow gold; major versions are blue; minor are teal-blue;
+  patches are gray
 - A ripple ring expands outward from each event
 - Package names and versions appear briefly as labels
 - An event log scrolls in the bottom-left corner
+
+**Controls:**
+
+- **Play/Pause** button in the header (or press **Space**)
+- **Volume** slider
+- **Drone** toggle to mute/unmute the background pad
+- **?** button opens a help dialog with sound/color legend and privacy info
 
 ## Running Locally
 
@@ -83,6 +90,10 @@ This project is inspired by:
 - [GitHub Audio](https://github.com/debugger22/github-audio)
 - [Listen to Wikipedia](https://github.com/hatnote/listen-to-wikipedia)
 - [BitListen](https://github.com/lupine-dev/bitlisten)
+
+## Authors
+
+- [Mike Fiedler](https://github.com/miketheman), with assistance from [Claude](https://claude.com).
 
 ## License
 

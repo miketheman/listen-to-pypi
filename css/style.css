@@ -49,6 +49,19 @@
   box-sizing: border-box;
 }
 
+/* Visually hidden but still accessible to screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Visible focus indicator for keyboard navigation */
 :focus-visible {
   outline: 2px solid var(--accent);
@@ -614,7 +627,15 @@ footer a:hover {
   }
   .volume-control label,
   .drone-toggle span {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
   #volume {
     width: 72px;
@@ -624,13 +645,27 @@ footer a:hover {
     margin-left: 0;
     font-size: 0.7rem;
   }
+  footer {
+    font-size: 0.7rem;
+    padding: 6px 12px;
+  }
   #help-dialog {
     max-width: calc(100vw - 32px);
   }
   #help-dialog .dialog-body {
     padding: 20px;
   }
+  #help-dialog p,
+  #help-dialog ul {
+    font-size: 0.9rem;
+  }
   #event-log {
     max-width: 90vw;
+  }
+  #log-list li {
+    font-size: 0.8rem;
+  }
+  #stats-bar {
+    font-size: 0.75rem;
   }
 }

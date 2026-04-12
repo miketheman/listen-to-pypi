@@ -37,6 +37,9 @@ let running = false;
 let statsRafPending = false;
 let pollIntervalId = null;
 let ambientIntervalId = null;
+let drainIntervalId = null;
+let consecutiveFailures = 0;
+const eventQueue = [];
 
 function init() {
   visual = new VisualEngine(document.getElementById("canvas"));
@@ -71,6 +74,16 @@ function init() {
 
   window.addEventListener("resize", () => visual?.resize());
 
+  // Space to play/pause — only when no input/button/dialog is focused
+  document.addEventListener("keydown", (e) => {
+    if (e.code !== "Space") return;
+    const tag = document.activeElement?.tagName;
+    if (tag === "INPUT" || tag === "BUTTON" || tag === "TEXTAREA") return;
+    if (document.querySelector("dialog[open]")) return;
+    e.preventDefault();
+    togglePlayback();
+  });
+
   log.info("App initialized", CONFIG);
 }
 
@@ -101,8 +114,8 @@ async function start() {
       log,
     });
 
-    // First fetch — seed the seen set, no sounds
-    await feed.poll();
+    // First fetch — seeds the seen set and returns a sample to play
+    const initialEvents = await feed.poll();
     log.info("Initial seed complete", feed.getStats());
 
     // Start the drone pad (respects saved toggle state)
@@ -154,11 +167,14 @@ async function start() {
       }
     }
 
-    // First real poll immediately — no silent gap after clicking Start
-    await poll();
+    // Queue the initial seed events for steady playback
+    if (initialEvents.length > 0) {
+      enqueueEvents(initialEvents);
+    }
 
-    // Begin regular polling
+    // Begin regular polling and steady event drain
     pollIntervalId = setInterval(poll, CONFIG.POLL_INTERVAL);
+    startDrain();
     startAmbientTimer();
   } catch (err) {
     log.error("Failed to start", { error: err.message, stack: err.stack });
@@ -176,6 +192,7 @@ async function pause() {
   running = false;
   clearInterval(pollIntervalId);
   clearInterval(ambientIntervalId);
+  stopDrain();
   pollIntervalId = null;
   ambientIntervalId = null;
   // Suspend the AudioContext to immediately silence everything —
@@ -190,6 +207,7 @@ async function resume() {
   running = true;
   lastEventTime = Date.now();
   pollIntervalId = setInterval(poll, CONFIG.POLL_INTERVAL);
+  startDrain();
   startAmbientTimer();
   updatePlayButton();
   log.info("Resumed");
@@ -198,8 +216,10 @@ async function resume() {
 
 function updatePlayButton() {
   const btn = document.getElementById("play-btn");
+  const label = running ? "Pause" : "Resume";
   btn.innerHTML = running ? ICON_PAUSE : ICON_PLAY;
-  btn.setAttribute("aria-label", running ? "Pause" : "Resume");
+  btn.setAttribute("aria-label", label);
+  btn.title = label;
   btn.disabled = false;
 }
 
@@ -210,45 +230,72 @@ async function poll() {
     const events = await feed.poll();
     log.verbose(`Poll: ${events.length} new events`, feed.getStats());
 
+    if (consecutiveFailures > 0) {
+      consecutiveFailures = 0;
+      updateStatus("");
+    }
+
     if (events.length > 0) {
-      scheduleEvents(events);
-      lastEventTime = Date.now();
+      enqueueEvents(events);
+      startDrain();
     }
 
     updateStats();
   } catch (err) {
-    log.warn("Poll failed, will retry next interval", { error: err.message });
+    consecutiveFailures++;
+    log.warn(`Poll failed (attempt ${consecutiveFailures})`, { error: err.message });
+    updateStatus(consecutiveFailures >= 3 ? "Reconnecting..." : "");
   }
 }
 
-function scheduleEvents(events) {
-  if (events.length === 0) return;
-
-  // Spread events evenly across the poll interval so there's
-  // a consistent stream of sound with minimal silence gaps.
-  const totalDuration = CONFIG.POLL_INTERVAL * 0.9;
-  const spacing = totalDuration / events.length;
-
-  // Fisher-Yates shuffle for variety (since RSS items are sorted by time)
-  const shuffled = [...events];
-  for (let i = shuffled.length - 1; i > 0; i--) {
+// Shuffle events before queuing so new packages (which come from a
+// separate feed with a wider time window) don't cluster together.
+function enqueueEvents(events) {
+  for (let i = events.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    [events[i], events[j]] = [events[j], events[i]];
+  }
+  eventQueue.push(...events);
+}
+
+// Drain events from the queue at a steady adaptive pace.
+// Schedules the next drain after each event based on queue depth
+// so the rate always matches the backlog — no unbounded growth.
+function scheduleDrain() {
+  if (!running || eventQueue.length === 0) {
+    drainIntervalId = null;
+    return;
   }
 
-  shuffled.forEach((event, i) => {
-    const jitter = (Math.random() - 0.5) * spacing * 0.4;
-    // First event plays quickly (within 500ms), rest spread out
-    const delay = i === 0 ? Math.random() * 500 : spacing * i + jitter;
-    setTimeout(() => triggerEvent(event), Math.max(100, delay));
-  });
+  const event = eventQueue.shift();
+  triggerEvent(event);
+
+  // Adaptive spacing: spread remaining queue across the poll interval,
+  // clamped to 1-5s so it never feels rushed or stale.
+  const delay = Math.max(
+    1000,
+    Math.min(5000, (CONFIG.POLL_INTERVAL * 0.9) / (eventQueue.length + 1)),
+  );
+  drainIntervalId = setTimeout(scheduleDrain, delay);
+}
+
+function startDrain() {
+  if (drainIntervalId) return;
+  scheduleDrain();
+}
+
+function stopDrain() {
+  clearTimeout(drainIntervalId);
+  drainIntervalId = null;
 }
 
 function triggerEvent(event) {
   if (!running) return;
 
+  const now = Date.now();
   totalEvents++;
-  eventTimes.push(Date.now());
+  eventTimes.push(now);
+  lastEventTime = now;
 
   const hints = soundHints(event);
 

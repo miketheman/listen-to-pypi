@@ -4,8 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Listen to PyPI</title>
-  <meta name="description" content="Listen to the Python Package Index — real-time sonification of PyPI package releases">
+  <meta name="description" content="Listen to the Python Package Index - real-time sonification of PyPI package releases">
+  <meta property="og:title" content="Listen to PyPI - Hear the Python Package Index in real-time">
+  <meta property="og:description" content="Every PyPI package release becomes a sound and a glowing circle. An ambient soundscape driven by real-time Python community activity, by miketheman.">
+  <meta property="og:image" content="https://miketheman.github.io/listen-to-pypi/og-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://miketheman.github.io/listen-to-pypi/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:site_name" content="Listen to PyPI">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="icon" href="logo.png" type="image/png" sizes="512x512">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="canonical" href="https://miketheman.github.io/listen-to-pypi/">
+  <meta name="theme-color" content="#0b1120">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" media="print" onload="this.media='all'">
@@ -35,8 +50,8 @@
         <input type="checkbox" id="drone-toggle" checked>
         <span>Drone</span>
       </label>
-      <!-- Play/pause icon button — SVG swapped by JS -->
-      <button type="button" id="play-btn" aria-label="Start listening">
+      <!-- Play/pause icon button - SVG swapped by JS -->
+      <button type="button" id="play-btn" aria-label="Start listening" title="Start listening">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
           <polygon points="6,3 20,12 6,21"/>
         </svg>
@@ -48,7 +63,7 @@
   <main>
     <svg id="canvas" role="img" aria-label="Visualization of PyPI package activity"></svg>
 
-    <!-- Hero play button — shown only before first start, centered on canvas -->
+    <!-- Hero play button - shown only before first start, centered on canvas -->
     <div id="hero-play">
       <button type="button" id="hero-play-btn" aria-label="Start listening">
         <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor" aria-hidden="true">
@@ -68,9 +83,9 @@
   </main>
 
   <footer>
-    Made with &#128153; by <a href="https://github.com/miketheman" rel="noopener">miketheman</a>
-    &middot; <a href="https://github.com/miketheman/listen-to-pypi" rel="noopener">Source</a>
-    &middot; <a href="https://pypi.org/trademarks/" rel="noopener">PyPI is a trademark of the PSF</a>
+    Made with &#128153; by <a href="https://github.com/miketheman" target="_blank" rel="noopener">miketheman</a>
+    &middot; <a href="https://github.com/miketheman/listen-to-pypi" target="_blank" rel="noopener">Source</a>
+    &middot; <a href="https://pypi.org/trademarks/" target="_blank" rel="noopener">Trademarks</a>
   </footer>
 
   <dialog id="help-dialog" aria-labelledby="help-title">
@@ -83,7 +98,7 @@
       </p>
       <h3>What you'll hear</h3>
       <ul>
-        <li>A gentle <strong>background drone</strong> plays continuously &mdash;
+        <li>A gentle <strong>background drone</strong> plays continuously -
           a warm chord that creates a meditative foundation
           (toggle it off with the <strong>Drone</strong> switch in the header)</li>
         <li><strong>Bell chimes</strong> ring for minor and patch releases,
@@ -105,8 +120,8 @@
       </p>
       <h3>Privacy</h3>
       <p>
-        This site only reads public PyPI RSS feeds. It doesn't send or
-        store any data &mdash; the only things saved are your volume
+        This site only reads public <a href="https://docs.pypi.org/api/feeds/" target="_blank" rel="noopener">PyPI RSS feeds</a>. It doesn't send or
+        store any data - the only things saved are your volume
         and drone settings in localStorage.
       </p>
       <form method="dialog">

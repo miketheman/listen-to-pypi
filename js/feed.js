@@ -117,18 +117,18 @@ class FeedManager {
     }
 
     // Deduplicate: if a package appears in both feeds, prefer new_package
-    const newEvents = this.initialized
-      ? [...packages, ...updates.filter((u) => !newPackageNames.has(u.name))]
-      : [];
-
-    this.log?.verbose(
-      `Poll: ${packages.length} new packages, ${updates.length} updates, ${newEvents.length} events`,
-    );
+    const deduped = [...packages, ...updates.filter((u) => !newPackageNames.has(u.name))];
 
     if (!this.initialized) {
       this.initialized = true;
-      this.log?.info(`Initial load: seeded ${this.seen.size} seen items`);
+      this.log?.info(
+        `Initial load: seeded ${this.seen.size} seen items, queuing ${deduped.length}`,
+      );
     }
+
+    this.log?.verbose(
+      `Poll: ${packages.length} new packages, ${updates.length} updates, ${deduped.length} events`,
+    );
 
     // Prune seen set to prevent unbounded growth
     if (this.seen.size > this.maxSeen) {
@@ -137,7 +137,7 @@ class FeedManager {
       this.log?.verbose(`Pruned seen set to ${this.seen.size}`);
     }
 
-    return newEvents;
+    return deduped;
   }
 
   getStats() {

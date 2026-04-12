@@ -11,12 +11,13 @@ No build step. No frameworks. No dependencies. Vanilla HTML/JS/CSS with Web Audi
 
 ```text
 index.html              Single page, loads js/app.js as ES module
-js/app.js               Entry point — wires audio, feed, visual together; contains log
+js/app.js               Entry point - wires audio, feed, visual together; event queue, controls
 js/audio.js             Web Audio API synthesis (bell, bowl, shimmer, drone, reverb)
 js/feed.js              RSS fetch, XML parse, dedup, event enrichment
 js/sound-hints.js       Pure function mapping event metadata to audio parameters
 js/visual.js            SVG circles with glow filters and SMIL ripple animations
 css/style.css           CSS custom properties, ascending specificity order
+manifest.json           PWA manifest for Add to Home Screen
 ```
 
 All JS files use ES modules (`export default`). `app.js` is the only entry point imported from HTML.
@@ -36,8 +37,11 @@ No server-side component needed. PyPI's RSS feeds serve CORS headers
 - **Client-only** — each browser runs independently, no shared server state
 - **Synthesized audio** — all sounds generated via Web Audio API, no audio files
 - **C major pentatonic scale** — any combination of simultaneous notes sounds harmonious
-- **Event staggering** — new events from each poll are spread evenly across the 30s interval to maintain consistent sound
-- **Deduplication** — a seen-set keyed on RSS `<link>` URLs, seeded silently on first load, pruned at 500 entries
+- **Event queue with adaptive drain** — poll results push to a queue; a setTimeout chain drains one event at a time with adaptive spacing (1-5s based on queue depth). Initial seed events are queued and played steadily from the start.
+- **Deduplication** — a seen-set keyed on RSS `<link>` URLs, pruned at 500 entries
+- **Keyboard shortcut** — Space to play/pause (skips when inputs or dialogs are focused)
+- **Network recovery** — tracks consecutive poll failures, shows "Reconnecting..." after 3 failures, clears on success
+- **Help dialog** — native `<dialog>` with app description, sound/color legend, and privacy note
 
 ## Event Enrichment Pipeline
 
@@ -65,30 +69,30 @@ Each RSS item is enriched with derived fields in `feed.js`:
 
 - All colors, fonts, and animation durations defined as CSS custom properties in `:root`
 - File ordered by ascending specificity: reset → elements → classes → IDs → media queries
-- No `!important`
-- Event type colors defined in both CSS vars (`--color-*`, `--log-*`) and JS (`getColor()` in visual.js) — keep them in sync
+- No `!important` except for the `prefers-reduced-motion` override (intentional per WCAG)
+- Event type colors defined in both CSS vars (`--color-*`, `--log-*`) and JS (`getColor()` in visual.js) - keep them in sync manually
 - Preserve comments when refactoring — explain non-obvious behavior for future readers
 
 ## Testing
 
 ```bash
-node --test js/feed.test.js
+node --test js/*.test.js
 ```
 
-Uses Node.js built-in test runner. Tests cover the pure functions exported from `feed.js`:
-`classifyVersion`, `classifyMaturity`, `classifyCategory`, `hashString`.
-
-These are exported as named exports alongside the default `FeedManager` class.
+Uses Node.js built-in test runner. Tests cover pure functions from `feed.js`
+(`classifyVersion`, `classifyMaturity`, `classifyCategory`, `hashString`)
+and `sound-hints.js` (`soundHints`, `CATEGORY_VOICE`, `MATURITY_DEPTH`).
 
 ## Linting and Formatting
 
 ```bash
-biome check js/ css/ index.html
+biome check
 ```
 
-Use `biome check` (not just `lint`) — it covers both lint rules and formatting.
+`files.includes` in `biome.json` controls which files are checked.
+Use `biome check` (not just `lint`) - it covers both lint rules and formatting.
 `biome` is available on PATH (no npx needed). Use `biome check --write` to
-auto-fix. Biome formats with tabs and double quotes.
+auto-fix. Biome formats with double quotes and trailing commas.
 
 `cspell.json` contains domain-specific words (detuned, SMIL, numpy, pentatonic, etc.).
 

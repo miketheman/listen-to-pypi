@@ -152,15 +152,26 @@ class AudioEngine {
     lfo.start(now);
 
     this.droneOscillators = [osc1, osc2, osc3, lfo];
+    this.droneLfo = lfo;
+    this.droneLfoGain = lfoGain;
   }
 
   setDroneEnabled(enabled) {
-    if (!this.droneGain) return;
+    if (!this.droneGain || !this.ctx) return;
     const now = this.ctx.currentTime;
-    const target = enabled ? 0.035 : 0;
-    this.droneGain.gain.cancelScheduledValues(now);
-    this.droneGain.gain.setValueAtTime(this.droneGain.gain.value, now);
-    this.droneGain.gain.linearRampToValueAtTime(target, now + 1);
+
+    // Cancel any in-flight ramps (e.g. the startup fade-in)
+    this.droneGain.gain.cancelScheduledValues(0);
+
+    if (enabled) {
+      // Reconnect LFO and fade in
+      this.droneLfoGain?.connect(this.droneGain.gain);
+      this.droneGain.gain.setTargetAtTime(0.035, now, 0.3);
+    } else {
+      // Disconnect LFO so it can't modulate gain back up, then fade out
+      this.droneLfoGain?.disconnect();
+      this.droneGain.gain.setTargetAtTime(0, now, 0.15);
+    }
   }
 
   // Bell sound — used for minor/patch updates
@@ -197,7 +208,7 @@ class AudioEngine {
       const decay = decayBase / (1 + h * 0.4);
 
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(level, now + 0.005);
+      gain.gain.linearRampToValueAtTime(level, now + 0.015);
       gain.gain.exponentialRampToValueAtTime(0.001, now + decay);
 
       osc.connect(gain).connect(pan);
@@ -314,7 +325,7 @@ class AudioEngine {
 
     const gain = this.ctx.createGain();
     gain.gain.setValueAtTime(0.001, now);
-    gain.gain.linearRampToValueAtTime(0.045, now + 0.003);
+    gain.gain.linearRampToValueAtTime(0.045, now + 0.01);
     gain.gain.exponentialRampToValueAtTime(0.001, now + decay);
 
     osc1.connect(gain);

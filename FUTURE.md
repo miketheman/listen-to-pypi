@@ -57,7 +57,7 @@ richer, more organic tones:
   could hear the same events at the same time, creating a communal "radio
   station" experience.
 
-- **Keyboard shortcuts** — Space to pause/resume, up/down for volume.
+- **Keyboard shortcuts** — ~~Space to pause/resume~~ (done), up/down for volume.
 
 - **Notification API** — Optionally show browser notifications for new
   packages matching a filter (e.g., packages you maintain or depend on).

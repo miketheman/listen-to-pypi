@@ -1,0 +1,21 @@
+{
+  "name": "Listen to PyPI",
+  "short_name": "Listen to PyPI",
+  "description": "Real-time ambient soundscape of Python package releases",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0b1120",
+  "theme_color": "#0b1120",
+  "icons": [
+    {
+      "src": "logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
