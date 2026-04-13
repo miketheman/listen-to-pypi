@@ -15,6 +15,26 @@ const log = {
   error: console.error.bind(console, PREFIX),
 };
 
+// Safe localStorage wrapper — returns null / no-ops if storage is
+// unavailable (private browsing, strict security policies).
+const storage = {
+  get(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (err) {
+      log.warn("localStorage unavailable, preferences won't be saved", { error: err.message });
+      return null;
+    }
+  },
+  set(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (err) {
+      log.warn("localStorage unavailable, preferences won't be saved", { error: err.message });
+    }
+  },
+};
+
 const CONFIG = {
   UPDATES_URL: "https://pypi.org/rss/updates.xml",
   PACKAGES_URL: "https://pypi.org/rss/packages.xml",
@@ -62,13 +82,13 @@ function init() {
 
   // Restore saved volume, or use the HTML default (50)
   const volumeEl = document.getElementById("volume");
-  const savedVolume = localStorage.getItem("volume");
+  const savedVolume = storage.get("volume");
   if (savedVolume !== null) volumeEl.value = savedVolume;
   volumeEl.addEventListener("input", onVolumeChange);
 
   // Restore drone toggle state
   const droneEl = document.getElementById("drone-toggle");
-  const savedDrone = localStorage.getItem("drone");
+  const savedDrone = storage.get("drone");
   if (savedDrone !== null) droneEl.checked = savedDrone !== "off";
   droneEl.addEventListener("change", onDroneToggle);
 
@@ -390,13 +410,13 @@ function updateStats() {
 function onVolumeChange(e) {
   const value = parseInt(e.target.value, 10);
   audio?.setVolume(value);
-  localStorage.setItem("volume", value);
+  storage.set("volume", value);
 }
 
 function onDroneToggle(e) {
   const enabled = e.target.checked;
   audio?.setDroneEnabled(enabled);
-  localStorage.setItem("drone", enabled ? "on" : "off");
+  storage.set("drone", enabled ? "on" : "off");
 }
 
 document.addEventListener("DOMContentLoaded", init);
