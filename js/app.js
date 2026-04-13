@@ -147,55 +147,60 @@ async function start() {
     updatePlayButton();
     lastEventTime = Date.now();
 
-    // Remove the hero overlay — animate it toward the header play button
-    // to guide the user's eye, or remove instantly if reduced motion.
-    const hero = document.getElementById("hero-play");
-    if (hero) {
-      const removeHero = () => {
-        hero.remove();
-        document.getElementById("play-btn").focus();
-      };
-
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        removeHero();
-      } else {
-        const heroBtn = document.getElementById("hero-play-btn");
-        const target = document.getElementById("play-btn");
-        const from = heroBtn.getBoundingClientRect();
-        const to = target.getBoundingClientRect();
-        const dx = to.left + to.width / 2 - (from.left + from.width / 2);
-        const dy = to.top + to.height / 2 - (from.top + from.height / 2);
-        const scale = to.width / from.width;
-
-        hero.querySelector(".hero-hint").animate([{ opacity: 1 }, { opacity: 0 }], {
-          duration: 200,
-          fill: "forwards",
-        });
-
-        heroBtn
-          .animate(
-            [
-              { transform: "translate(0, 0) scale(1)", opacity: 1 },
-              {
-                transform: `translate(${dx}px, ${dy}px) scale(${scale})`,
-                opacity: 0.2,
-              },
-            ],
-            { duration: 600, easing: "ease-in", fill: "forwards" },
-          )
-          .finished.then(removeHero);
-      }
-    }
-
-    // Queue the initial seed events for steady playback
+    // Queue the initial seed events for playback after the hero animation
     if (initialEvents.length > 0) {
       enqueueEvents(initialEvents);
     }
 
-    // Begin regular polling and steady event drain
+    // Start polling immediately — events accumulate in the queue
     pollIntervalId = setInterval(poll, CONFIG.POLL_INTERVAL);
-    startDrain();
     startAmbientTimer();
+
+    // Remove the hero overlay — animate it toward the header play button
+    // to guide the user's eye. Begin draining events once the transition
+    // completes so the first sound doesn't compete with the animation.
+    const hero = document.getElementById("hero-play");
+    const beginPlayback = () => {
+      startDrain();
+    };
+
+    if (!hero) {
+      beginPlayback();
+    } else if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      hero.remove();
+      document.getElementById("play-btn").focus();
+      beginPlayback();
+    } else {
+      const heroBtn = document.getElementById("hero-play-btn");
+      const target = document.getElementById("play-btn");
+      const from = heroBtn.getBoundingClientRect();
+      const to = target.getBoundingClientRect();
+      const dx = to.left + to.width / 2 - (from.left + from.width / 2);
+      const dy = to.top + to.height / 2 - (from.top + from.height / 2);
+      const scale = to.width / from.width;
+
+      hero.querySelector(".hero-hint").animate([{ opacity: 1 }, { opacity: 0 }], {
+        duration: 200,
+        fill: "forwards",
+      });
+
+      heroBtn
+        .animate(
+          [
+            { transform: "translate(0, 0) scale(1)", opacity: 1 },
+            {
+              transform: `translate(${dx}px, ${dy}px) scale(${scale})`,
+              opacity: 0.2,
+            },
+          ],
+          { duration: 600, easing: "ease-in", fill: "forwards" },
+        )
+        .finished.then(() => {
+          hero.remove();
+          document.getElementById("play-btn").focus();
+          beginPlayback();
+        });
+    }
   } catch (err) {
     log.error("Failed to start", { error: err.message, stack: err.stack });
     btn.disabled = false;
