@@ -9,6 +9,8 @@ class AudioEngine {
     this.dryGain = null;
     this.droneGain = null;
     this.droneOscillators = [];
+    this.droneEnabled = true;
+    this.droneBreathTimer = null;
     this.activeNotes = 0;
     this.maxNotes = 15;
     this.noteTimeout = 300;
@@ -154,21 +156,63 @@ class AudioEngine {
     this.droneOscillators = [osc1, osc2, osc3, lfo];
     this.droneLfo = lfo;
     this.droneLfoGain = lfoGain;
+    this._scheduleDroneBreath();
+  }
+
+  // Breathing cycle: the drone fades out to silence and back in at
+  // random intervals so the texture never becomes static. Randomized
+  // timings prevent the cycle from feeling mechanical (inspired by
+  // Eno's incommensurable loop technique).
+  _scheduleDroneBreath() {
+    if (!this.droneEnabled) return;
+
+    const fadeOut = 45 + Math.random() * 45; // 45-90s fade out
+    const silence = 15 + Math.random() * 15; // 15-30s silence
+    const fadeIn = 45 + Math.random() * 45; // 45-90s fade in
+    const hold = 60 + Math.random() * 120; // 60-180s at full level
+
+    // Wait at full level, then begin the breath cycle
+    this.droneBreathTimer = setTimeout(() => {
+      if (!this.droneEnabled || !this.ctx) return;
+      const now = this.ctx.currentTime;
+
+      // Schedule the full breath: fade out -> silence -> fade in
+      this.droneGain.gain.cancelScheduledValues(now);
+      this.droneGain.gain.setValueAtTime(this.droneGain.gain.value, now);
+      this.droneGain.gain.linearRampToValueAtTime(0, now + fadeOut);
+      const returnTime = now + fadeOut + silence;
+      this.droneGain.gain.linearRampToValueAtTime(0, returnTime);
+      this.droneGain.gain.linearRampToValueAtTime(0.035, returnTime + fadeIn);
+
+      // Schedule next cycle after this breath completes
+      const breathDuration = (fadeOut + silence + fadeIn) * 1000;
+      this.droneBreathTimer = setTimeout(() => {
+        this._scheduleDroneBreath();
+      }, breathDuration);
+    }, hold * 1000);
+  }
+
+  _stopDroneBreath() {
+    clearTimeout(this.droneBreathTimer);
+    this.droneBreathTimer = null;
   }
 
   setDroneEnabled(enabled) {
     if (!this.droneGain || !this.ctx) return;
+    this.droneEnabled = enabled;
     const now = this.ctx.currentTime;
 
-    // Cancel any in-flight ramps (e.g. the startup fade-in)
+    // Cancel any in-flight ramps (breathing cycle or startup fade)
     this.droneGain.gain.cancelScheduledValues(0);
 
     if (enabled) {
-      // Reconnect LFO and fade in
+      // Reconnect LFO, fade in, and restart breathing cycle
       this.droneLfoGain?.connect(this.droneGain.gain);
       this.droneGain.gain.setTargetAtTime(0.035, now, 0.3);
+      this._scheduleDroneBreath();
     } else {
-      // Disconnect LFO so it can't modulate gain back up, then fade out
+      // Stop breathing, disconnect LFO, fade out
+      this._stopDroneBreath();
       this.droneLfoGain?.disconnect();
       this.droneGain.gain.setTargetAtTime(0, now, 0.15);
     }
@@ -369,6 +413,7 @@ class AudioEngine {
   // Suspend the AudioContext — immediately silences all output.
   // Existing oscillators freeze in place and resume where they left off.
   async suspend() {
+    this._stopDroneBreath();
     if (this.ctx?.state === "running") {
       await this.ctx.suspend();
     }
@@ -377,6 +422,9 @@ class AudioEngine {
   async resume() {
     if (this.ctx?.state === "suspended") {
       await this.ctx.resume();
+    }
+    if (this.droneEnabled) {
+      this._scheduleDroneBreath();
     }
   }
 
