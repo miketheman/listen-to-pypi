@@ -20,7 +20,7 @@ class FeedManager {
     this.lastFetchStatus = response.status;
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} fetching ${url}`);
+      throw new Error(`HTTP ${response.status}: ${url}`);
     }
 
     const text = await response.text();
@@ -29,7 +29,7 @@ class FeedManager {
 
     const parseError = doc.querySelector("parsererror");
     if (parseError) {
-      throw new Error(`XML parse error: ${parseError.textContent.slice(0, 100)}`);
+      throw new Error(`XML parse error (${url}): ${parseError.textContent.slice(0, 100)}`);
     }
 
     return doc;
