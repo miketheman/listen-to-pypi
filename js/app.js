@@ -160,16 +160,14 @@ async function start() {
     // to guide the user's eye. Begin draining events once the transition
     // completes so the first sound doesn't compete with the animation.
     const hero = document.getElementById("hero-play");
-    const beginPlayback = () => {
+    const dismissHero = () => {
+      hero?.remove();
+      document.getElementById("play-btn").focus();
       startDrain();
     };
 
-    if (!hero) {
-      beginPlayback();
-    } else if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      hero.remove();
-      document.getElementById("play-btn").focus();
-      beginPlayback();
+    if (!hero || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      dismissHero();
     } else {
       const heroBtn = document.getElementById("hero-play-btn");
       const target = document.getElementById("play-btn");
@@ -195,11 +193,7 @@ async function start() {
           ],
           { duration: 600, easing: "ease-in", fill: "forwards" },
         )
-        .finished.then(() => {
-          hero.remove();
-          document.getElementById("play-btn").focus();
-          beginPlayback();
-        });
+        .finished.then(dismissHero);
     }
   } catch (err) {
     log.error("Failed to start", { error: err.message, stack: err.stack });
