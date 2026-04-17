@@ -295,13 +295,17 @@ function scheduleDrain() {
   const event = eventQueue.shift();
   triggerEvent(event);
 
-  // Adaptive spacing: spread remaining queue across the poll interval,
-  // clamped to 2-5s. Research shows ~12 BPM (5s) is optimal for
-  // relaxation; 2s minimum avoids rushing during backlog drain.
-  const delay = Math.max(
-    2000,
+  // Adaptive spacing with jitter:
+  // - Small queue (1-3): ~5s spacing (relaxed, matches ~12 BPM research target)
+  // - Medium queue (5-10): ~2-3s spacing (steady)
+  // - Large queue (20+): ~500ms-1s (audible burst — preserves "flurry" feel)
+  // Plus ±30% jitter so spacing never feels mechanical.
+  const base = Math.max(
+    500,
     Math.min(5000, (CONFIG.POLL_INTERVAL * 0.9) / (eventQueue.length + 1)),
   );
+  const jitter = 1 + (Math.random() - 0.5) * 0.6;
+  const delay = base * jitter;
   drainIntervalId = setTimeout(scheduleDrain, delay);
 }
 
