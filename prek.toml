@@ -11,3 +11,14 @@ rev = "v3.6.1"
 hooks = [
   {id = "editorconfig-checker"}
 ]
+
+[[repos]]
+repo = "local"
+
+[[repos.hooks]]
+id = "node-test"
+name = "node --test"
+entry = "bash -c 'node --test js/*.test.js'"
+language = "system"
+files = "^js/.*\\.js$"
+pass_filenames = false
