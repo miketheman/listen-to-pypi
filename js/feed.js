@@ -117,12 +117,18 @@ class FeedManager {
     }
 
     // Deduplicate: if a package appears in both feeds, prefer new_package
-    const deduped = [...packages, ...updates.filter((u) => !newPackageNames.has(u.name))];
+    let deduped = [...packages, ...updates.filter((u) => !newPackageNames.has(u.name))];
 
     if (!this.initialized) {
+      // Initial seed: drop events older than 1 hour. The packages feed
+      // can span ~100 minutes, which would feel stale - "live" should
+      // mean roughly the last hour at most.
+      const cutoff = Date.now() - 60 * 60 * 1000;
+      const total = deduped.length;
+      deduped = deduped.filter((e) => new Date(e.pubDate).getTime() >= cutoff);
       this.initialized = true;
       this.log?.info(
-        `Initial load: seeded ${this.seen.size} seen items, queuing ${deduped.length}`,
+        `Initial load: seeded ${this.seen.size} seen items, queuing ${deduped.length} (${total - deduped.length} older than 1h skipped)`,
       );
     }
 
