@@ -78,7 +78,9 @@ function init() {
   });
   helpDialog.addEventListener("close", () => {
     helpBtn.setAttribute("aria-expanded", "false");
+    storage.set("helpSeen", "1");
   });
+  if (storage.get("helpSeen") === null) helpDialog.showModal();
 
   // Restore saved volume, or use the HTML default (50)
   const volumeEl = document.getElementById("volume");
