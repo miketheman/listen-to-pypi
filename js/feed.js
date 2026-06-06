@@ -97,14 +97,29 @@ class FeedManager {
     this.fetchCount++;
     this.lastFetchTime = new Date();
 
-    const [updatesDoc, packagesDoc] = await Promise.all([
+    // The two feeds are independent — don't let one transient failure throw
+    // away results from the other. Only surface an error (so the caller can
+    // count failures and show "Reconnecting...") when BOTH feeds fail.
+    const [updatesResult, packagesResult] = await Promise.allSettled([
       this.fetchFeed(this.updatesUrl),
       this.fetchFeed(this.packagesUrl),
     ]);
 
+    if (updatesResult.status === "rejected" && packagesResult.status === "rejected") {
+      throw updatesResult.reason;
+    }
+    if (updatesResult.status === "rejected" || packagesResult.status === "rejected") {
+      this.log?.warn(
+        `Partial poll: updates=${updatesResult.status}, packages=${packagesResult.status}`,
+      );
+    }
+
+    const updatesDoc = updatesResult.status === "fulfilled" ? updatesResult.value : null;
+    const packagesDoc = packagesResult.status === "fulfilled" ? packagesResult.value : null;
+
     // parseItems skips already-seen links, so these only contain new items
-    const packages = this.parseItems(packagesDoc, "new_package");
-    const updates = this.parseItems(updatesDoc, "update");
+    const packages = packagesDoc ? this.parseItems(packagesDoc, "new_package") : [];
+    const updates = updatesDoc ? this.parseItems(updatesDoc, "update") : [];
 
     // Mark all new items as seen
     const newPackageNames = new Set();
