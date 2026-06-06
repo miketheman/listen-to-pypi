@@ -95,6 +95,12 @@ function init() {
   if (savedDrone !== null) droneEl.checked = savedDrone !== "off";
   droneEl.addEventListener("change", onDroneToggle);
 
+  // Restore 432 Hz tuning toggle state
+  const tuningEl = document.getElementById("tuning-toggle");
+  const savedTuning = storage.get("tuning");
+  if (savedTuning !== null) tuningEl.checked = savedTuning === "432";
+  tuningEl.addEventListener("change", onTuningToggle);
+
   window.addEventListener("resize", () => visual?.resize());
 
   // Keyboard shortcuts — ignored while a dialog is open.
@@ -144,6 +150,8 @@ async function start() {
     audio = new AudioEngine();
     await audio.init();
     audio.setVolume(parseInt(document.getElementById("volume").value, 10));
+    // Apply saved tuning before the drone starts so both are in tune
+    audio.setTuningEnabled(document.getElementById("tuning-toggle").checked);
     log.info("AudioContext created", { state: audio.getState() });
 
     feed = new FeedManager({
@@ -457,6 +465,12 @@ function onDroneToggle(e) {
   const enabled = e.target.checked;
   audio?.setDroneEnabled(enabled);
   storage.set("drone", enabled ? "on" : "off");
+}
+
+function onTuningToggle(e) {
+  const enabled = e.target.checked;
+  audio?.setTuningEnabled(enabled);
+  storage.set("tuning", enabled ? "432" : "440");
 }
 
 document.addEventListener("DOMContentLoaded", init);
