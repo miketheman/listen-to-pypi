@@ -99,6 +99,18 @@ auto-fix. Biome formats with double quotes and trailing commas.
 
 `cspell.json` contains domain-specific words (detuned, SMIL, numpy, pentatonic, etc.).
 
+## Pre-commit Hooks
+
+Commits are gated by [`prek`](https://github.com/j178/prek) (a pre-commit-compatible
+runner) configured in `prek.toml` — there is no `.pre-commit-config.yaml`.
+Hooks run `biome-check`, `editorconfig-checker` (enforces `.editorconfig`), and
+`node --test js/*.test.js`.
+
+```bash
+prek run --all-files   # run all hooks manually
+prek install           # install the git hook
+```
+
 ## Things to Keep in Mind
 
 - PyPI RSS feeds return 100 items each, update frequently (~8-10 releases/min)
