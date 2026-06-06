@@ -49,7 +49,7 @@ class AudioEngine {
   }
 
   async init() {
-    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    this.ctx = new AudioContext();
 
     this.masterGain = this.ctx.createGain();
     this.masterGain.gain.value = 0.5;
