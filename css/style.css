@@ -570,6 +570,8 @@ footer a:hover {
   flex-direction: column;
 }
 
+/* Older entries fade out (base opacity 0.45); the nth-last-child rules below
+ * brighten the newest few, and hover/focus restores any entry. */
 #log-list li {
   font-size: 0.75rem;
   padding: 2px 0;
@@ -579,11 +581,6 @@ footer a:hover {
   animation: log-appear 0.3s ease-out;
   pointer-events: auto;
   transition: opacity 0.2s;
-}
-
-/* Fade older entries — newest (last-child) is brightest,
- * older entries at the top fade out. Hover/focus restores any entry. */
-#log-list li {
   opacity: 0.45;
 }
 #log-list li:nth-last-child(1) {
