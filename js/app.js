@@ -199,6 +199,11 @@ async function start() {
     }
   } catch (err) {
     log.error("Failed to start", { error: err.message, stack: err.stack });
+    // Reset so a retry runs the full start() path again. The AudioEngine is
+    // assigned before the awaited fetch that can throw, so without this a
+    // retry would see a truthy `audio` and fall through to resume() — leaving
+    // the drone unstarted and the hero overlay stuck on screen.
+    audio = null;
     btn.disabled = false;
 
     let hint = err.message;
