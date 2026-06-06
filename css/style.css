@@ -176,7 +176,8 @@ header h1 {
   color: var(--text-muted);
 }
 
-.drone-toggle {
+/* Shared switch control — used by the Drone and 432 Hz toggles */
+.toggle {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -186,7 +187,7 @@ header h1 {
 }
 
 /* Toggle switch — hides the native checkbox and draws a pill track + knob */
-.drone-toggle input {
+.toggle input {
   appearance: none;
   width: 32px;
   height: 18px;
@@ -197,7 +198,7 @@ header h1 {
   transition: background 0.2s;
   flex-shrink: 0;
 }
-.drone-toggle input::after {
+.toggle input::after {
   content: "";
   position: absolute;
   top: 2px;
@@ -210,10 +211,10 @@ header h1 {
     transform 0.2s,
     background 0.2s;
 }
-.drone-toggle input:checked {
+.toggle input:checked {
   background: var(--accent);
 }
-.drone-toggle input:checked::after {
+.toggle input:checked::after {
   transform: translateX(14px);
   background: #fff;
 }

@@ -1,6 +1,28 @@
 // Audio synthesis engine using Web Audio API
 // Generates all sounds programmatically — no audio files needed
 
+// C major pentatonic across 3 octaves, at standard A=440 reference tuning.
+const BASE_SCALE = {
+  low: [130.81, 146.83, 164.81, 196.0, 220.0],
+  mid: [261.63, 293.66, 329.63, 392.0, 440.0],
+  high: [523.25, 587.33, 659.26, 783.99, 880.0],
+};
+
+// Drone voicing — C3 + G3 + E3, aligned to drone oscillator indices [0..2].
+const DRONE_BASE = [130.81, 196.02, 164.91];
+
+// Experimental 432 Hz tuning: a uniform multiplier applied to every pitch.
+const RATIO_432 = 432 / 440;
+
+// Scale every frequency in a scale by ratio, returning new arrays (pure).
+function tuneScale(scale, ratio) {
+  const out = {};
+  for (const octave of Object.keys(scale)) {
+    out[octave] = scale[octave].map((freq) => freq * ratio);
+  }
+  return out;
+}
+
 class AudioEngine {
   constructor() {
     this.ctx = null;
@@ -20,12 +42,10 @@ class AudioEngine {
     this.maxNotes = 15;
     this.noteTimeout = 300;
 
-    // C major pentatonic across 3 octaves
-    this.scale = {
-      low: [130.81, 146.83, 164.81, 196.0, 220.0],
-      mid: [261.63, 293.66, 329.63, 392.0, 440.0],
-      high: [523.25, 587.33, 659.26, 783.99, 880.0],
-    };
+    // Tuning: 1 = standard A=440, RATIO_432 = experimental 432 Hz.
+    // this.scale is rebuilt from BASE_SCALE whenever the ratio changes.
+    this.tuningRatio = 1;
+    this.scale = tuneScale(BASE_SCALE, this.tuningRatio);
   }
 
   async init() {
@@ -122,18 +142,19 @@ class AudioEngine {
     const now = this.ctx.currentTime;
 
     // Three sine oscillators forming a C major triad (C3 + E3 + G3),
-    // slightly detuned for warmth and slow beating
+    // slightly detuned for warmth and slow beating. Frequencies follow the
+    // active tuning so the drone starts in tune with the scale.
     const osc1 = this.ctx.createOscillator();
     osc1.type = "sine";
-    osc1.frequency.value = 130.81;
+    osc1.frequency.value = DRONE_BASE[0] * this.tuningRatio;
 
     const osc2 = this.ctx.createOscillator();
     osc2.type = "sine";
-    osc2.frequency.value = 196.02; // G3 + slight detune for slow beating
+    osc2.frequency.value = DRONE_BASE[1] * this.tuningRatio; // G3 + slight detune for slow beating
 
     const osc3 = this.ctx.createOscillator();
     osc3.type = "sine";
-    osc3.frequency.value = 164.91; // E3 + slight detune to soften beating with G3
+    osc3.frequency.value = DRONE_BASE[2] * this.tuningRatio; // E3 + slight detune to soften beating with G3
 
     // Slow LFO for gentle volume modulation
     const lfo = this.ctx.createOscillator();
@@ -221,6 +242,26 @@ class AudioEngine {
       this._stopDroneBreath();
       this.droneLfoGain?.disconnect();
       this.droneGain.gain.setTargetAtTime(0, now, 0.15);
+    }
+  }
+
+  // Toggle experimental 432 Hz tuning. Rebuilds the scale (so the next note of
+  // every voice retunes) and glides any running drone oscillators to match, so
+  // the continuous drone never clashes with freshly-tuned notes.
+  setTuningEnabled(enabled) {
+    this.tuningRatio = enabled ? RATIO_432 : 1;
+    this.scale = tuneScale(BASE_SCALE, this.tuningRatio);
+
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    // droneOscillators is [osc1, osc2, osc3, lfo]; retune the three voices,
+    // leave the LFO modulation rate alone.
+    for (let i = 0; i < DRONE_BASE.length; i++) {
+      this.droneOscillators[i]?.frequency.setTargetAtTime(
+        DRONE_BASE[i] * this.tuningRatio,
+        now,
+        0.15,
+      );
     }
   }
 
@@ -446,3 +487,4 @@ class AudioEngine {
 }
 
 export default AudioEngine;
+export { RATIO_432, tuneScale };

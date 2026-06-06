@@ -47,9 +47,13 @@
         <input type="range" id="volume" min="0" max="100" value="50">
         <label for="volume">Volume</label>
       </div>
-      <label class="drone-toggle" title="Toggle background drone">
+      <label class="toggle drone-toggle" title="Toggle background drone">
         <input type="checkbox" id="drone-toggle" checked>
         <span>Drone</span>
+      </label>
+      <label class="toggle tuning-toggle" title="432 Hz tuning (experimental)">
+        <input type="checkbox" id="tuning-toggle">
+        <span>432 Hz</span>
       </label>
       <!-- Play/pause icon button - SVG swapped by JS -->
       <button type="button" id="play-btn" aria-label="Start listening" title="Start listening">
@@ -107,6 +111,8 @@
         <li>Deep <strong>singing bowl</strong> tones mark new packages and
           major version releases</li>
         <li>Occasional <strong>shimmers</strong> add textural variety</li>
+        <li>An experimental <strong>432 Hz</strong> switch in the header retunes
+          everything slightly lower, for a softer feel</li>
       </ul>
       <h3>What you'll see</h3>
       <ul>
