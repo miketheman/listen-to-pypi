@@ -97,14 +97,29 @@ class FeedManager {
     this.fetchCount++;
     this.lastFetchTime = new Date();
 
-    const [updatesDoc, packagesDoc] = await Promise.all([
+    // The two feeds are independent — don't let one transient failure throw
+    // away results from the other. Only surface an error (so the caller can
+    // count failures and show "Reconnecting...") when BOTH feeds fail.
+    const [updatesResult, packagesResult] = await Promise.allSettled([
       this.fetchFeed(this.updatesUrl),
       this.fetchFeed(this.packagesUrl),
     ]);
 
+    if (updatesResult.status === "rejected" && packagesResult.status === "rejected") {
+      throw updatesResult.reason;
+    }
+    if (updatesResult.status === "rejected" || packagesResult.status === "rejected") {
+      this.log?.warn(
+        `Partial poll: updates=${updatesResult.status}, packages=${packagesResult.status}`,
+      );
+    }
+
+    const updatesDoc = updatesResult.status === "fulfilled" ? updatesResult.value : null;
+    const packagesDoc = packagesResult.status === "fulfilled" ? packagesResult.value : null;
+
     // parseItems skips already-seen links, so these only contain new items
-    const packages = this.parseItems(packagesDoc, "new_package");
-    const updates = this.parseItems(updatesDoc, "update");
+    const packages = packagesDoc ? this.parseItems(packagesDoc, "new_package") : [];
+    const updates = updatesDoc ? this.parseItems(updatesDoc, "update") : [];
 
     // Mark all new items as seen
     const newPackageNames = new Set();
@@ -125,7 +140,12 @@ class FeedManager {
       // mean roughly the last hour at most.
       const cutoff = Date.now() - 60 * 60 * 1000;
       const total = deduped.length;
-      deduped = deduped.filter((e) => new Date(e.pubDate).getTime() >= cutoff);
+      // Keep items with a missing/unparseable pubDate (NaN) rather than
+      // silently dropping them — only filter out those provably older than 1h.
+      deduped = deduped.filter((e) => {
+        const ts = new Date(e.pubDate).getTime();
+        return Number.isNaN(ts) || ts >= cutoff;
+      });
       this.initialized = true;
       this.log?.info(
         `Initial load: seeded ${this.seen.size} seen items, queuing ${deduped.length} (${total - deduped.length} older than 1h skipped)`,

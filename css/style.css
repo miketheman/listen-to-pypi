@@ -19,8 +19,9 @@
   --btn-green: #148024; /* PyPI $success-color */
   --btn-green-hover: #1a9a2e;
 
-  /* Event type colors — match JS getColor() in visual.js
-   * New packages use PyPI highlight yellow, others use logo blues */
+  /* Event type colors — single source of truth; visual.js reads these
+   * via getComputedStyle. New packages use PyPI highlight yellow,
+   * others use logo blues */
   --color-new: #ffd343; /* PyPI $highlight-color */
   --color-major: #4b8bbe; /* PyPI logo blue */
   --color-minor: #3775a9; /* PyPI logo teal-blue */
@@ -79,6 +80,16 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  /* Without this, the universal rule above collapses circle-life/label-fade
+   * to 0.01ms and (because both keyframes end at opacity:0 with fill:forwards)
+   * every circle and label jumps straight to invisible — leaving a blank
+   * canvas. Disable those animations entirely so the elements render at their
+   * static opacity and persist until JS removes the node (--circle-life). */
+  .event-circle,
+  .event-label {
+    animation: none !important;
   }
 }
 
@@ -560,6 +571,8 @@ footer a:hover {
   flex-direction: column;
 }
 
+/* Older entries fade out (base opacity 0.45); the nth-last-child rules below
+ * brighten the newest few, and hover/focus restores any entry. */
 #log-list li {
   font-size: 0.75rem;
   padding: 2px 0;
@@ -569,11 +582,6 @@ footer a:hover {
   animation: log-appear 0.3s ease-out;
   pointer-events: auto;
   transition: opacity 0.2s;
-}
-
-/* Fade older entries — newest (last-child) is brightest,
- * older entries at the top fade out. Hover/focus restores any entry. */
-#log-list li {
   opacity: 0.45;
 }
 #log-list li:nth-last-child(1) {

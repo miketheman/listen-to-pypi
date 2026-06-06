@@ -54,6 +54,7 @@ let totalEvents = 0;
 let eventTimes = [];
 let lastEventTime = 0;
 let running = false;
+let starting = false;
 let statsRafPending = false;
 let pollIntervalId = null;
 let ambientIntervalId = null;
@@ -110,6 +111,11 @@ function init() {
 }
 
 async function togglePlayback() {
+  // Guard against re-entrant clicks during start()'s async setup. `audio` is
+  // assigned partway through start(), so without this flag a second click
+  // (e.g. on the hero button, which start() doesn't disable) could slip into
+  // resume() and spin up a duplicate poll interval.
+  if (starting) return;
   if (running) {
     await pause();
   } else if (audio) {
@@ -120,6 +126,7 @@ async function togglePlayback() {
 }
 
 async function start() {
+  starting = true;
   const btn = document.getElementById("play-btn");
   btn.disabled = true;
 
@@ -199,6 +206,11 @@ async function start() {
     }
   } catch (err) {
     log.error("Failed to start", { error: err.message, stack: err.stack });
+    // Reset so a retry runs the full start() path again. The AudioEngine is
+    // assigned before the awaited fetch that can throw, so without this a
+    // retry would see a truthy `audio` and fall through to resume() — leaving
+    // the drone unstarted and the hero overlay stuck on screen.
+    audio = null;
     btn.disabled = false;
 
     let hint = err.message;
@@ -206,6 +218,8 @@ async function start() {
       hint = "Cannot reach PyPI RSS feed. Check your network connection.";
     }
     updateStatus(`Error: ${hint}`);
+  } finally {
+    starting = false;
   }
 }
 

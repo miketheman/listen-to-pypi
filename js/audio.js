@@ -11,6 +11,11 @@ class AudioEngine {
     this.droneOscillators = [];
     this.droneEnabled = true;
     this.droneBreathTimer = null;
+    // Short-window burst limiter (not a true polyphony cap): each voice
+    // increments activeNotes and decrements it after noteTimeout ms, well
+    // before its multi-second decay finishes. It caps how many voices can
+    // *start* within that window, guarding against a flood; with drain
+    // spacing floored at ~500ms it rarely engages.
     this.activeNotes = 0;
     this.maxNotes = 15;
     this.noteTimeout = 300;
@@ -116,7 +121,8 @@ class AudioEngine {
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
 
-    // Two sine oscillators forming a fifth (C3 + G3), slightly detuned for warmth
+    // Three sine oscillators forming a C major triad (C3 + E3 + G3),
+    // slightly detuned for warmth and slow beating
     const osc1 = this.ctx.createOscillator();
     osc1.type = "sine";
     osc1.frequency.value = 130.81;

@@ -73,7 +73,7 @@ Summary of voices:
 - All colors, fonts, and animation durations defined as CSS custom properties in `:root`
 - File ordered by ascending specificity: reset → elements → classes → IDs → media queries
 - No `!important` except for the `prefers-reduced-motion` override (intentional per WCAG)
-- Event type colors defined in both CSS vars (`--color-*`, `--log-*`) and JS (`getColor()` in visual.js) - keep them in sync manually
+- Event type colors live in CSS vars (`--color-*`, `--log-*`); `getColor()` in visual.js reads `--color-*` via `getComputedStyle` at construction, so CSS is the single source of truth
 - Preserve comments when refactoring — explain non-obvious behavior for future readers
 
 ## Testing
@@ -98,6 +98,18 @@ Use `biome check` (not just `lint`) - it covers both lint rules and formatting.
 auto-fix. Biome formats with double quotes and trailing commas.
 
 `cspell.json` contains domain-specific words (detuned, SMIL, numpy, pentatonic, etc.).
+
+## Pre-commit Hooks
+
+Commits are gated by [`prek`](https://github.com/j178/prek) (a pre-commit-compatible
+runner) configured in `prek.toml` — there is no `.pre-commit-config.yaml`.
+Hooks run `biome-check`, `editorconfig-checker` (enforces `.editorconfig`), and
+`node --test js/*.test.js`.
+
+```bash
+prek run --all-files   # run all hooks manually
+prek install           # install the git hook
+```
 
 ## Things to Keep in Mind
 
