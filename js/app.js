@@ -97,14 +97,24 @@ function init() {
 
   window.addEventListener("resize", () => visual?.resize());
 
-  // Space to play/pause — only when no input/button/dialog is focused
+  // Keyboard shortcuts — ignored while a dialog is open.
   document.addEventListener("keydown", (e) => {
-    if (e.code !== "Space") return;
-    const tag = document.activeElement?.tagName;
-    if (tag === "INPUT" || tag === "BUTTON" || tag === "TEXTAREA") return;
     if (document.querySelector("dialog[open]")) return;
-    e.preventDefault();
-    togglePlayback();
+    const tag = document.activeElement?.tagName;
+
+    if (e.code === "Space") {
+      // Space activates a focused button/input natively — don't also toggle.
+      if (tag === "INPUT" || tag === "BUTTON" || tag === "TEXTAREA") return;
+      e.preventDefault();
+      togglePlayback();
+    } else if (e.code === "ArrowUp" || e.code === "ArrowDown") {
+      // Arrows adjust volume globally. A focused slider/text field keeps its
+      // native arrow behavior; buttons don't react to arrows (and the play
+      // button holds focus right after start), so those are allowed through.
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      e.preventDefault();
+      adjustVolume(e.code === "ArrowUp" ? 10 : -10);
+    }
   });
 
   log.info("App initialized", CONFIG);
@@ -424,6 +434,17 @@ function updateStats() {
       `${totalEvents} update${totalEvents !== 1 ? "s" : ""}`;
     document.getElementById("rate").textContent = `${rate}/min`;
   });
+}
+
+// Nudge the volume slider by delta (clamped 0-100) and route through the
+// slider's input event so onVolumeChange applies and persists it.
+function adjustVolume(delta) {
+  const volumeEl = document.getElementById("volume");
+  const current = parseInt(volumeEl.value, 10);
+  const next = Math.max(0, Math.min(100, current + delta));
+  if (next === current) return;
+  volumeEl.value = next;
+  volumeEl.dispatchEvent(new Event("input"));
 }
 
 function onVolumeChange(e) {
