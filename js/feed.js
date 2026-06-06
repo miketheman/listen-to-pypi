@@ -140,7 +140,12 @@ class FeedManager {
       // mean roughly the last hour at most.
       const cutoff = Date.now() - 60 * 60 * 1000;
       const total = deduped.length;
-      deduped = deduped.filter((e) => new Date(e.pubDate).getTime() >= cutoff);
+      // Keep items with a missing/unparseable pubDate (NaN) rather than
+      // silently dropping them — only filter out those provably older than 1h.
+      deduped = deduped.filter((e) => {
+        const ts = new Date(e.pubDate).getTime();
+        return Number.isNaN(ts) || ts >= cutoff;
+      });
       this.initialized = true;
       this.log?.info(
         `Initial load: seeded ${this.seen.size} seen items, queuing ${deduped.length} (${total - deduped.length} older than 1h skipped)`,
