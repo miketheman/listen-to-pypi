@@ -80,6 +80,16 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
+  /* Without this, the universal rule above collapses circle-life/label-fade
+   * to 0.01ms and (because both keyframes end at opacity:0 with fill:forwards)
+   * every circle and label jumps straight to invisible — leaving a blank
+   * canvas. Disable those animations entirely so the elements render at their
+   * static opacity and persist until JS removes the node (--circle-life). */
+  .event-circle,
+  .event-label {
+    animation: none !important;
+  }
 }
 
 html,
