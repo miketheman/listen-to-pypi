@@ -19,8 +19,9 @@
   --btn-green: #148024; /* PyPI $success-color */
   --btn-green-hover: #1a9a2e;
 
-  /* Event type colors — match JS getColor() in visual.js
-   * New packages use PyPI highlight yellow, others use logo blues */
+  /* Event type colors — single source of truth; visual.js reads these
+   * via getComputedStyle. New packages use PyPI highlight yellow,
+   * others use logo blues */
   --color-new: #ffd343; /* PyPI $highlight-color */
   --color-major: #4b8bbe; /* PyPI logo blue */
   --color-minor: #3775a9; /* PyPI logo teal-blue */

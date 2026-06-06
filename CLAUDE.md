@@ -73,7 +73,7 @@ Summary of voices:
 - All colors, fonts, and animation durations defined as CSS custom properties in `:root`
 - File ordered by ascending specificity: reset → elements → classes → IDs → media queries
 - No `!important` except for the `prefers-reduced-motion` override (intentional per WCAG)
-- Event type colors defined in both CSS vars (`--color-*`, `--log-*`) and JS (`getColor()` in visual.js) - keep them in sync manually
+- Event type colors live in CSS vars (`--color-*`, `--log-*`); `getColor()` in visual.js reads `--color-*` via `getComputedStyle` at construction, so CSS is the single source of truth
 - Preserve comments when refactoring — explain non-obvious behavior for future readers
 
 ## Testing

@@ -7,8 +7,23 @@ class VisualEngine {
     this.svg = svgElement;
     this.maxCircles = 60;
     this.circleCount = 0;
+    this.colors = this._readColors();
     this._initDefs();
     this.resize();
+  }
+
+  // Read event colors from CSS custom properties so style.css is the single
+  // source of truth. Read once at construction (the stylesheet is a blocking
+  // <link>, so values are available). Fallbacks guard against missing vars.
+  _readColors() {
+    const styles = getComputedStyle(document.documentElement);
+    const read = (name, fallback) => styles.getPropertyValue(name).trim() || fallback;
+    return {
+      new: read("--color-new", "#ffd343"),
+      major: read("--color-major", "#4b8bbe"),
+      minor: read("--color-minor", "#3775a9"),
+      patch: read("--color-patch", "#7a8da0"),
+    };
   }
 
   _initDefs() {
@@ -81,17 +96,16 @@ class VisualEngine {
     this.svg.setAttribute("viewBox", `0 0 ${this.width} ${this.height}`);
   }
 
-  // Event colors — derived from PyPI brand palette.
-  // Keep in sync with --color-* and --log-* vars in style.css.
+  // Event colors — sourced from the --color-* CSS vars in style.css.
   getColor(event) {
-    if (event.type === "new_package") return "#ffd343"; // PyPI highlight yellow
+    if (event.type === "new_package") return this.colors.new;
     switch (event.versionType) {
       case "major":
-        return "#4B8BBE"; // PyPI logo blue
+        return this.colors.major;
       case "minor":
-        return "#3775A9"; // PyPI logo teal-blue
+        return this.colors.minor;
       default:
-        return "#7a8da0";
+        return this.colors.patch;
     }
   }
 
