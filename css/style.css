@@ -64,26 +64,29 @@
 }
 
 /* Respect user preference for reduced motion.
+ *
+ * Each animation opts into its own reduced variant by setting
+ * --animation-reduced; the initial value of `none` means anything that
+ * doesn't declare one is simply switched off. Collapsing durations to
+ * 0.01ms instead (the older pattern) fast-forwards fill-forwards
+ * animations to their end state — which for circle-life/label-fade is
+ * opacity: 0, blanking the canvas.
+ *
  * !important is intentional — must override all animation declarations
  * regardless of specificity. Standard a11y pattern per WCAG 2.3.3.
  * noImportantStyles rule disabled in biome.json for this reason. */
+@property --animation-reduced {
+  syntax: "*";
+  inherits: false;
+  initial-value: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
+    animation: var(--animation-reduced) !important;
     transition-duration: 0.01ms !important;
-  }
-
-  /* Without this, the universal rule above collapses circle-life/label-fade
-   * to 0.01ms and (because both keyframes end at opacity:0 with fill:forwards)
-   * every circle and label jumps straight to invisible — leaving a blank
-   * canvas. Disable those animations entirely so the elements render at their
-   * static opacity and persist until JS removes the node (--circle-life). */
-  .event-circle,
-  .event-label {
-    animation: none !important;
   }
 }
 
@@ -457,6 +460,7 @@ footer a:hover {
   inset: -8px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(75, 139, 190, 0.25) 0%, transparent 70%);
+  opacity: 0; /* static base — the pulse drives opacity, so reduced motion stays calm */
   animation: hero-pulse 3s ease-in-out infinite;
   pointer-events: none;
 }
