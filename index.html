@@ -34,8 +34,8 @@
 <body>
   <header>
     <h1>
-      <img src="logo.svg" alt="Listen to PyPI" class="logo" width="26" height="26">Listen to PyPI
-      <button type="button" id="help-btn" aria-label="What is this?" aria-expanded="false" aria-controls="help-dialog" title="What is this?">
+      <img src="logo.svg" alt="" class="logo" width="26" height="26">Listen to PyPI
+      <button type="button" id="help-btn" aria-label="What is this?" aria-haspopup="dialog" aria-controls="help-dialog">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
           <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
           <text x="12" y="17" text-anchor="middle" font-size="14" font-weight="600" fill="currentColor">?</text>
@@ -45,24 +45,24 @@
     <div class="controls">
       <div class="volume-control">
         <input type="range" id="volume" min="0" max="100" value="50">
-        <label for="volume">Volume</label>
+        <label for="volume" class="sr-only-sm">Volume</label>
       </div>
-      <label class="toggle drone-toggle" title="Toggle background drone">
+      <label class="toggle drone-toggle">
         <input type="checkbox" id="drone-toggle" checked>
-        <span>Drone</span>
+        <span class="sr-only-sm">Drone</span>
       </label>
-      <label class="toggle tuning-toggle" title="432 Hz tuning (experimental)">
+      <label class="toggle tuning-toggle">
         <input type="checkbox" id="tuning-toggle">
-        <span>432 Hz</span>
+        <span class="sr-only-sm">432 Hz</span>
       </label>
       <!-- Play/pause icon button - SVG swapped by JS -->
-      <button type="button" id="play-btn" aria-label="Start listening" title="Start listening">
+      <button type="button" id="play-btn" aria-label="Start listening">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
           <polygon points="6,3 20,12 6,21"/>
         </svg>
       </button>
     </div>
-    <span id="status" role="status" aria-live="polite"></span>
+    <span id="status" role="status"></span>
   </header>
 
   <main>
@@ -78,8 +78,12 @@
       <p class="hero-hint">Click to start listening</p>
     </div>
 
-    <div id="event-log" role="log" aria-live="polite">
-      <ul id="log-list"></ul>
+    <!-- aria-live="off": releases arrive ~8-10/min, far too often to announce.
+    The region stays navigable; #status is the only polite announcer. -->
+    <div id="event-log" role="log" aria-live="off">
+      <!-- biome-ignore lint/a11y/noRedundantRoles: Safari strips list
+      semantics from a <ul> styled list-style: none + display: flex -->
+      <ul id="log-list" role="list"></ul>
       <div id="stats-bar">
         <span id="total-count">0 updates</span>
         <span id="rate">--/min</span>
@@ -93,7 +97,7 @@
     &middot; <a href="https://pypi.org/trademarks/" target="_blank" rel="noopener">Trademarks</a>
   </footer>
 
-  <dialog id="help-dialog" aria-labelledby="help-title">
+  <dialog id="help-dialog" closedby="any" aria-labelledby="help-title">
     <div class="dialog-body">
       <h2 id="help-title">What is this?</h2>
       <p>
