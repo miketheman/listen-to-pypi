@@ -69,18 +69,22 @@ function init() {
   document.getElementById("hero-play-btn").addEventListener("click", togglePlayback);
   const helpDialog = document.getElementById("help-dialog");
   const helpBtn = document.getElementById("help-btn");
-  helpBtn.addEventListener("click", () => {
-    helpDialog.showModal();
-    helpBtn.setAttribute("aria-expanded", "true");
-  });
-  // Close when clicking the backdrop (outside the dialog content)
-  helpDialog.addEventListener("click", (e) => {
-    if (e.target === helpDialog) helpDialog.close();
-  });
-  helpDialog.addEventListener("close", () => {
-    helpBtn.setAttribute("aria-expanded", "false");
-    storage.set("helpSeen", "1");
-  });
+  helpBtn.addEventListener("click", () => helpDialog.showModal());
+  // Light dismiss comes from closedby="any" on the dialog. Safari doesn't
+  // support it yet, so fall back to closing on a click outside the content box.
+  if (!("closedBy" in HTMLDialogElement.prototype)) {
+    helpDialog.addEventListener("click", (e) => {
+      if (e.target !== helpDialog) return;
+      const rect = helpDialog.getBoundingClientRect();
+      const insideContent =
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom &&
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right;
+      if (!insideContent) helpDialog.close();
+    });
+  }
+  helpDialog.addEventListener("close", () => storage.set("helpSeen", "1"));
   if (storage.get("helpSeen") === null) helpDialog.showModal();
 
   // Restore saved volume, or use the HTML default (50)
@@ -101,7 +105,15 @@ function init() {
   if (savedTuning !== null) tuningEl.checked = savedTuning === "432";
   tuningEl.addEventListener("change", onTuningToggle);
 
-  window.addEventListener("resize", () => visual?.resize());
+  // Coalesce resize bursts into one measure-and-write per frame
+  let resizeRaf = null;
+  window.addEventListener("resize", () => {
+    if (resizeRaf) return;
+    resizeRaf = requestAnimationFrame(() => {
+      resizeRaf = null;
+      visual?.resize();
+    });
+  });
 
   // Keyboard shortcuts — ignored while a dialog is open.
   document.addEventListener("keydown", (e) => {
@@ -272,7 +284,6 @@ function updatePlayButton() {
   const label = running ? "Pause" : "Resume";
   btn.innerHTML = running ? ICON_PAUSE : ICON_PLAY;
   btn.setAttribute("aria-label", label);
-  btn.title = label;
   btn.disabled = false;
 }
 

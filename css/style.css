@@ -1,6 +1,10 @@
 /* Listen to PyPI — Styles */
 
 :root {
+  /* Dark-only design — tell the UA so browser-rendered UI (range input,
+   * scrollbars, focus rings) matches instead of rendering light. */
+  color-scheme: dark;
+
   /*
    * Color palette — derived from PyPI's brand colors:
    * Primary blue: #006dad  Highlight yellow: #ffd343
@@ -9,7 +13,8 @@
    */
   --bg-deep: #0b1120;
   --bg-surface: rgba(11, 17, 32, 0.92);
-  --border: #1a2744;
+  --border: #1a2744; /* surface dividers — decorative, no contrast floor */
+  --border-control: #5a6b85; /* interactive boundaries — 3.5:1 on --bg-deep (WCAG 1.4.11) */
   --text-primary: #e6edf3;
   --text-body: #b8c4d0;
   --text-muted: #7a8da0;
@@ -27,11 +32,13 @@
   --color-minor: #3775a9; /* PyPI logo teal-blue */
   --color-patch: #7a8da0;
 
-  /* Log link colors (slightly muted versions of event colors) */
-  --log-new: #e6b830;
-  --log-major: #5a9cc5; /* 6.3:1 contrast on --bg-deep */
-  --log-minor: #4a85aa; /* 4.7:1 contrast on --bg-deep */
-  --log-patch: #7a8b9c; /* 5.4:1 contrast on --bg-deep */
+  /* Log link colors — brighter than the circle colors because log entries
+   * render at 0.8-1 opacity. Ratios below are measured at the 0.8 floor,
+   * where every entry still clears the 4.5:1 minimum for body text. */
+  --log-new: #e6b830; /* 6.8:1 */
+  --log-major: #66a6cd; /* 4.9:1 */
+  --log-minor: #67b3b3; /* 5.4:1 */
+  --log-patch: #93a3b3; /* 5.1:1 */
 
   /* Animation durations */
   --circle-life: 12s;
@@ -48,19 +55,6 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
-
-/* Visually hidden but still accessible to screen readers */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }
 
 /* Visible focus indicator for keyboard navigation */
@@ -176,11 +170,14 @@ header h1 {
   color: var(--text-muted);
 }
 
-/* Shared switch control — used by the Drone and 432 Hz toggles */
+/* Shared switch control — used by the Drone and 432 Hz toggles.
+ * The whole label is the hit area, so it carries the 24px minimum
+ * target size (WCAG 2.5.8) rather than the pill itself. */
 .toggle {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-block-size: 24px;
   font-size: 0.8rem;
   color: var(--text-muted);
   cursor: pointer;
@@ -189,9 +186,10 @@ header h1 {
 /* Toggle switch — hides the native checkbox and draws a pill track + knob */
 .toggle input {
   appearance: none;
-  width: 32px;
-  height: 18px;
-  border-radius: 9px;
+  width: 34px;
+  height: 20px;
+  border: 1px solid var(--border-control);
+  border-radius: 10px;
   background: var(--border);
   position: relative;
   cursor: pointer;
@@ -273,24 +271,11 @@ footer a:hover {
   pointer-events: none;
 }
 
-/* Event log entry description text */
+/* Event log entry description text — --text-body, not --text-faint, so it
+ * still clears 4.5:1 at the 0.8 opacity floor of an aged log entry. */
 .log-desc {
-  color: var(--text-faint);
+  color: var(--text-body);
   font-size: 0.7rem;
-}
-
-/* Log entry link colors by event type */
-.log-new a {
-  color: var(--log-new);
-}
-.log-major a {
-  color: var(--log-major);
-}
-.log-minor a {
-  color: var(--log-minor);
-}
-.log-patch a {
-  color: var(--log-patch);
 }
 
 @keyframes circle-life {
@@ -352,7 +337,7 @@ footer a:hover {
   border: none;
   color: var(--text-muted);
   cursor: pointer;
-  padding: 0;
+  padding: 4px; /* 16px icon + padding = 24px target (WCAG 2.5.8) */
   display: flex;
   align-items: center;
   transition: color 0.15s;
@@ -509,7 +494,7 @@ footer a:hover {
   width: 32px;
   height: 32px;
   background: none;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   color: var(--text-body);
   cursor: pointer;
@@ -572,8 +557,10 @@ footer a:hover {
   flex-direction: column;
 }
 
-/* Older entries fade out (base opacity 0.45); the nth-last-child rules below
- * brighten the newest few, and hover/focus restores any entry. */
+/* Older entries fade out; the nth-last-child rules below brighten the newest
+ * few, and hover/focus restores any entry. The 0.8 floor is a contrast
+ * floor, not an aesthetic one — below it the --log-* colors drop under the
+ * 4.5:1 minimum for body text (WCAG 1.4.3). */
 #log-list li {
   font-size: 0.75rem;
   padding: 2px 0;
@@ -583,22 +570,22 @@ footer a:hover {
   animation: log-appear 0.3s ease-out;
   pointer-events: auto;
   transition: opacity 0.2s;
-  opacity: 0.45;
+  opacity: 0.8;
 }
 #log-list li:nth-last-child(1) {
-  opacity: 0.95;
+  opacity: 1;
 }
 #log-list li:nth-last-child(2) {
-  opacity: 0.85;
+  opacity: 0.95;
 }
 #log-list li:nth-last-child(3) {
-  opacity: 0.7;
+  opacity: 0.9;
 }
 #log-list li:nth-last-child(4) {
-  opacity: 0.6;
+  opacity: 0.87;
 }
 #log-list li:nth-last-child(5) {
-  opacity: 0.5;
+  opacity: 0.84;
 }
 #log-list li:hover,
 #log-list li:focus-within {
@@ -611,6 +598,22 @@ footer a:hover {
 }
 #log-list li a:hover {
   text-decoration: underline;
+}
+
+/* Link color by event type. These need the #log-list prefix to out-specify
+ * the --accent fallback above — as bare .log-* class rules they lost the
+ * cascade and every entry rendered accent blue. */
+#log-list .log-new a {
+  color: var(--log-new);
+}
+#log-list .log-major a {
+  color: var(--log-major);
+}
+#log-list .log-minor a {
+  color: var(--log-minor);
+}
+#log-list .log-patch a {
+  color: var(--log-patch);
 }
 
 /* Stats sit below the event log */
@@ -634,15 +637,17 @@ footer a:hover {
   header h1 {
     font-size: 1rem;
   }
-  .volume-control label,
-  .drone-toggle span {
+  /* Control labels collapse to screen-reader-only to save header width.
+   * :focus-within/:active opt out so focusable content can still reveal
+   * itself if this utility is reused on a link or button. */
+  .sr-only-sm:where(:not(:focus-within, :active)) {
     position: absolute;
     width: 1px;
     height: 1px;
     padding: 0;
     margin: -1px;
     overflow: hidden;
-    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
     white-space: nowrap;
     border: 0;
   }
@@ -659,7 +664,7 @@ footer a:hover {
     padding: 6px 12px;
   }
   #help-dialog {
-    max-width: calc(100vw - 32px);
+    max-width: calc(100dvw - 32px);
   }
   #help-dialog .dialog-body {
     padding: 20px;
@@ -669,7 +674,7 @@ footer a:hover {
     font-size: 0.9rem;
   }
   #event-log {
-    max-width: 90vw;
+    max-width: 90dvw;
   }
   #log-list li {
     font-size: 0.8rem;
